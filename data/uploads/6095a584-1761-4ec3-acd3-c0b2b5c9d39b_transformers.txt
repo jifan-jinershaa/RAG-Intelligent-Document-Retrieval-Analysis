@@ -1,0 +1,5 @@
+Deep Learning Architectures and Transformer Models.
+
+Transformers rely entirely on self-attention mechanisms to compute representations of input and output sequences without using sequence-aligned RNNs or convolution.
+
+The self-attention layer allows the model to attend to information from different representation subspaces at different positions simultaneously.

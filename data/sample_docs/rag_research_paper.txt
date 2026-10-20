@@ -1,0 +1,30 @@
+# Optimizing Retrieval-Augmented Generation Using Chunking Strategies and Hybrid Search
+Author: RAGLab Research Team
+Date: October 2026
+
+## 1. Introduction to Retrieval-Augmented Generation (RAG)
+Retrieval-Augmented Generation (RAG) is an architectural framework designed to mitigate large language model hallucinations by providing models with authoritative external knowledge retrieved dynamically at query time. Traditional deep neural networks store knowledge implicitly within parametric weights, which makes knowledge updates computationally expensive and susceptible to confabulation. In contrast, RAG introduces a non-parametric memory system composed of a document index, a retrieval engine, and a sequence generator.
+
+## 2. Chunking Strategies and Granularity Trade-offs
+Document chunking represents the foundational preprocessing stage in any RAG pipeline. The choice of chunking strategy directly governs retrieval precision, context preservation, and hallucination rates:
+- Fixed-Size Chunking: Discretizes text into rigid, uniform character windows (e.g., 500 characters with a 50-character overlap). While computationally trivial, it frequently fractures compound sentences and breaks semantic continuity.
+- Recursive Chunking: Hierarchically splits text along structural linguistic markers—paragraphs, newlines, and sentence punctuation—falling back to whitespace and characters only when fragments exceed the target threshold. This maintains natural document flow and syntactic integrity.
+- Semantic Chunking: Evaluates sentence-level embeddings and dynamically detects topical boundaries by measuring cosine distance drops between consecutive sentence vectors. Chunks are aggregated until a semantic shift threshold is exceeded, ensuring coherent topic isolation.
+
+## 3. Retrieval Methodologies: Keyword, Vector, and Hybrid Fusion
+Information retrieval within RAG architectures typically leverages three fundamental paradigms:
+- BM25 Keyword Retrieval: An enhanced probabilistic TF-IDF formulation that models term frequency saturation and document length normalization. BM25 excels at retrieving exact entities, code identifiers, chemical formulas, and precise terminological acronyms.
+- Vector Semantic Retrieval: Utilizes dense embedding representations produced by encoder models such as all-MiniLM-L6-v2. Text passages are projected into high-dimensional vector spaces where semantic similarity is measured via cosine distance. Vector retrieval handles vocabulary mismatches, synonymy, and paraphrase variations effectively.
+- Hybrid Retrieval with Reciprocal Rank Fusion (RRF): Combines the precision of BM25 with the conceptual depth of dense vector retrieval. Reciprocal Rank Fusion aggregates ordinal rankings across systems according to the formula: RRF(d) = sum(1 / (60 + rank(d))). This ensures balanced recall without requiring fragile cross-system score normalization.
+
+## 4. Machine Learning Foundations: Supervised vs Unsupervised Learning
+Within modern artificial intelligence, machine learning methodologies are categorized based on supervision signals:
+- Supervised Learning: Algorithms are trained on labeled datasets containing pairs of input features and target ground-truth annotations. The objective is to minimize empirical risk and learn a mapping function capable of generalizing to unseen inputs. Examples include classification (support vector machines, neural networks) and regression.
+- Unsupervised Learning: Algorithms discover latent patterns, cluster hierarchies, and intrinsic data structures without human supervision or ground-truth targets. Examples include k-means clustering, principal component analysis (PCA), autoencoders, and topic modeling.
+- Reinforcement Learning: Agents interact with dynamic environments to maximize cumulative reward through sequential decision-making.
+
+## 5. Evaluation Metrics for Retrieval Systems
+Rigorous empirical benchmarking of retrieval requires standard quantitative metrics:
+- Recall@K: Measures the proportion of relevant ground-truth passages retrieved within the top K candidates. High Recall@K ensures the LLM receives all critical evidence needed to avoid omissions.
+- Precision@K: Quantifies the fraction of retrieved passages within the top K that are genuinely relevant. Higher precision reduces context noise and token overhead.
+- Mean Reciprocal Rank (MRR): Evaluates ranking quality by computing the multiplicative inverse of the rank of the first relevant document. An MRR of 1.0 indicates that the first retrieved passage was always relevant.
