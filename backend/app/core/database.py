@@ -1,7 +1,7 @@
 import sqlite3
 import json
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from app.core.config import settings
 
 def get_db_connection() -> sqlite3.Connection:
@@ -126,6 +126,6 @@ def set_setting(key: str, value: Any):
         INSERT INTO app_settings (key, value, updated_at) 
         VALUES (?, ?, ?) 
         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-    """, (key, serialized, datetime.utcnow().isoformat()))
+    """, (key, serialized, datetime.now(timezone.utc).isoformat()))
     conn.commit()
     conn.close()

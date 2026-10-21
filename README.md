@@ -168,7 +168,75 @@ raglab/
 
 ---
 
-## 5. Getting Started (Windows Setup & Execution)
+## 5. Deploying to Render (Cloud Production)
+
+RAGLab is fully configured for deployment on [Render](https://render.com) using either the **Automated Blueprint (`render.yaml`)** or manual dashboard setup.
+
+### Architecture on Render
+- **Backend Web Service (`raglab-backend`):** FastAPI Python 3.12 Web Service handling PyMuPDF ingestion, ChromaDB vector indexing, BM25 retrieval, and Gemini inference.
+- **Frontend Static Site (`raglab-frontend`):** Vite React Single Page Application served globally with automatic SPA rewrites (`/* -> /index.html`).
+
+---
+
+### Option A: 1-Click Render Blueprint (Recommended)
+
+1. Push your repository changes to GitHub:
+   ```bash
+   git add .
+   git commit -m "Configure RAGLab for Render deployment"
+   git push origin main
+   ```
+2. Log in to [Render Dashboard](https://dashboard.render.com).
+3. Click **New +** and select **Blueprint**.
+4. Connect your GitHub repository: `RAG-Intelligent-Document-Retrieval-Analysis`.
+5. Render detects `render.yaml` automatically and configures:
+   - `raglab-backend` (Web Service)
+   - `raglab-frontend` (Static Site with automatic URL binding)
+6. Enter your `GEMINI_API_KEY` when prompted in the environment variables form.
+7. Click **Apply**. Render will deploy both services in dependency order!
+
+---
+
+### Option B: Manual Service Creation in Render
+
+If you prefer to configure each service manually in the Render Dashboard:
+
+#### Step 1: Deploy the Backend Web Service
+1. In Render Dashboard, click **New +** > **Web Service**.
+2. Connect your GitHub repository.
+3. Configure settings:
+   - **Name:** `raglab-backend`
+   - **Root Directory:** `backend`
+   - **Environment:** `Python`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Health Check Path:** `/api/health`
+4. Add Environment Variables:
+   - `PYTHON_VERSION`: `3.12.8`
+   - `DEFAULT_GEMINI_MODEL`: `gemini-2.5-flash`
+   - `GEMINI_API_KEY`: *(Your Google Gemini API Key)*
+   - `CORS_ORIGINS`: `*`
+5. Click **Create Web Service**. Note your backend URL (e.g. `https://raglab-backend.onrender.com`).
+
+#### Step 2: Deploy the Frontend Static Site
+1. In Render Dashboard, click **New +** > **Static Site**.
+2. Connect the same GitHub repository.
+3. Configure settings:
+   - **Name:** `raglab-frontend`
+   - **Root Directory:** `frontend`
+   - **Build Command:** `npm install && npm run build`
+   - **Publish Directory:** `dist`
+4. Add Environment Variable:
+   - `VITE_API_URL`: `https://raglab-backend.onrender.com` *(Use your actual backend URL from Step 1)*
+5. Add Redirects/Rewrites (Under "Redirects / Rewrites"):
+   - **Type:** `Rewrite`
+   - **Source:** `/*`
+   - **Destination:** `/index.html`
+6. Click **Create Static Site**.
+
+---
+
+## 6. Getting Started (Local Windows Setup & Execution)
 
 ### Prerequisites
 - **Python 3.12, 3.13, or 3.14**

@@ -15,7 +15,18 @@ import {
   DashboardSummary
 } from '../types';
 
-const BASE_URL = '/api';
+// Resolve backend URL: uses VITE_API_URL in production (Render), or /api fallback in local dev
+const resolveApiUrl = (): string => {
+  let raw = (import.meta.env.VITE_API_URL || '').trim();
+  if (!raw) return '/api';
+  if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+    raw = `https://${raw}`;
+  }
+  raw = raw.replace(/\/+$/, '');
+  return raw.endsWith('/api') ? raw : `${raw}/api`;
+};
+
+const BASE_URL = resolveApiUrl();
 
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${url}`, {

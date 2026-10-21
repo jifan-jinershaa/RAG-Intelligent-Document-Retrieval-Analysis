@@ -13,8 +13,25 @@ import { SettingsPage } from './pages/SettingsPage';
 import { api } from './services/api';
 import { DocumentBase, DashboardSummary, AppSettings } from './types';
 
+const VALID_TABS: NavTab[] = [
+  'overview',
+  'documents',
+  'chunking',
+  'retrieval',
+  'rag',
+  'comparison',
+  'evaluation',
+  'history',
+  'settings',
+];
+
+const getInitialTab = (): NavTab => {
+  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase() as NavTab;
+  return VALID_TABS.includes(hash) ? hash : 'overview';
+};
+
 export function App() {
-  const [currentTab, setCurrentTab] = useState<NavTab>('overview');
+  const [currentTab, setCurrentTab] = useState<NavTab>(getInitialTab);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [documents, setDocuments] = useState<DocumentBase[]>([]);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
@@ -22,6 +39,22 @@ export function App() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [isBackendHealthy, setIsBackendHealthy] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleTabChange = (tab: NavTab) => {
+    setCurrentTab(tab);
+    window.location.hash = `#/${tab}`;
+  };
+
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase() as NavTab;
+      if (VALID_TABS.includes(hash)) {
+        setCurrentTab(hash);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   const fetchCoreData = useCallback(async () => {
     setIsRefreshing(true);
@@ -66,7 +99,7 @@ export function App() {
       {/* Persistent Sidebar */}
       <Sidebar
         currentTab={currentTab}
-        onTabChange={(tab) => setCurrentTab(tab)}
+        onTabChange={handleTabChange}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         docCount={documents.length}
@@ -88,7 +121,7 @@ export function App() {
           {currentTab === 'overview' && (
             <Overview
               summary={summary}
-              onNavigate={(tab) => setCurrentTab(tab)}
+              onNavigate={handleTabChange}
             />
           )}
 
@@ -120,7 +153,7 @@ export function App() {
               documents={documents}
               selectedDocIds={selectedDocIds}
               geminiKeySet={Boolean(settings?.gemini_api_key_set)}
-              onNavigate={(tab) => setCurrentTab(tab)}
+              onNavigate={handleTabChange}
             />
           )}
 

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -31,16 +32,32 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Middleware
+# Parse CORS Origins from environment (supports wildcard or comma-separated list of domains)
+cors_origins_raw = getattr(settings, "CORS_ORIGINS", "*")
+if cors_origins_raw == "*" or not cors_origins_raw.strip():
+    allow_origins = ["*"]
+else:
+    allow_origins = [origin.strip() for origin in cors_origins_raw.split(",") if origin.strip()]
+
+# CORS Middleware for Render production cross-origin communication
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include API Routers
+# Root health check endpoint for Render platform health checker
+@app.get("/health", tags=["Health"])
+def root_health_check():
+    return {
+        "status": "healthy",
+        "service": settings.APP_NAME,
+        "version": "1.0.0"
+    }
+
+# Include API Routers with /api prefix
 app.include_router(dashboard.router, prefix=settings.API_V1_STR)
 app.include_router(documents.router, prefix=settings.API_V1_STR)
 app.include_router(chunking.router, prefix=settings.API_V1_STR)
@@ -61,4 +78,7 @@ def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
+    # Listen on Render's assigned PORT and 0.0.0.0
+    port = int(os.environ.get("PORT", settings.PORT))
+    host = os.environ.get("HOST", settings.HOST)
+    uvicorn.run("app.main:app", host=host, port=port, reload=False)
